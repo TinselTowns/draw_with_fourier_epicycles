@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fourier Transform Images with Epicycles!</title>
+  
+  <style>
+    body {
+      margin: 0;
+      background: radial-gradient(circle at center, #050505 0%, #0a0a0f 100%);
+      color: #00ffff;
+      font-family: "Segoe UI", sans-serif;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    h2 {
+      margin-top: 15px;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffffaa;
+      font-weight: 400;
+    }
+
+    #container {
+      display: flex;
+      gap: 20px;
+      margin-top: 10px;
+      position: relative;
+    }
+
+    canvas {
+      border-radius: 8px;
+      box-shadow: 0 0 20px #00ffff33;
+    }
+
+    #canvas, #epicircles {
+      border: 2px solid #00ffff55;
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    #drawing {
+      border: 3px solid #00ffff;
+      position: relative;
+    }
+
+.slidecontainer {
+  width: 300px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.slider-label {
+  color: #ffcc00;
+  font-family: 'Segoe UI', sans-serif;
+  letter-spacing: 0.5px;
+  font-size: 16px;
+  text-shadow: 0 0 8px #ffcc0088;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.slider {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #111, #222);
+  outline: none;
+  opacity: 0.95;
+  box-shadow: 0 0 10px #ffcc0044, inset 0 0 5px #ffcc0033;
+  transition: all 0.3s ease;
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+}
+
+.slider::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #111, #222);
+}
+
+.slider::-moz-range-track {
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #111, #222);
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ffcc00, #999900 80%);
+  border: 2px solid #ffcc00aa;
+  box-shadow: 0 0 10px #ffcc00cc, inset 0 0 4px #000;
+  cursor: pointer;
+  margin-top: -6px;
+  transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: radial-gradient(circle at 30% 30%, #ffee66, #999900 80%);
+  border-color: #ffee66;
+  box-shadow: 0 0 20px #ffee66cc, inset 0 0 6px #000;
+  transform: scale(1.1);
+}
+
+
+.slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ffcc00, #999900 80%);
+  border: 2px solid #ffcc00aa;
+  box-shadow: 0 0 10px #ffcc00cc, inset 0 0 4px #000;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  vertical-align: middle;
+}
+
+.slider::-moz-range-thumb:hover {
+  background: radial-gradient(circle at 30% 30%, #ffee66, #999900 80%);
+  border-color: #ffee66;
+  box-shadow: 0 0 20px #ffee66cc, inset 0 0 6px #000;
+  transform: scale(1.1);
+}
+
+#controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+
+button {
+  position: relative;
+  background: radial-gradient(circle at center, #0a0a10, #000);
+  color: #00ffff;
+  border: 2px solid #00ffff66;
+  border-radius: 40px;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  padding: 10px 22px;
+  cursor: pointer;
+  text-shadow: 0 0 8px #00ffff88;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 10px #00ffff33;
+}
+
+
+button:hover {
+  background: radial-gradient(circle at center, #002222, #000);
+  color: #ffcc00;
+  border-color: #ffcc00;
+  text-shadow: 0 0 12px #ffcc00;
+  box-shadow: 0 0 15px #ffcc0088, inset 0 0 10px #ffcc0033;
+  transform: translateY(-2px);
+}
+
+
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 0 5px #ffcc0088, inset 0 0 10px #ffcc0033;
+}
+
+
+button.active {
+  color: #000;
+  background: linear-gradient(90deg, #00ffff, #ffcc00);
+  border: none;
+  box-shadow: 0 0 20px #00ffffaa;
+  text-shadow: none;
+}
+
+#circlesNumber {
+  color: #ffcc00;
+  font-weight: bold;
+  min-width: 30px;
+  text-align: center;
+  font-family: 'Segoe UI', sans-serif;
+  text-shadow: 0 0 6px #ffcc0088;
+}
+
+  </style>
+</head>
+
+<body>
+  <h2>Fourier Transform Images with Epicycles!</h2>
+  
+  <div id="container">
+    <div style="position: relative; width: 800px; height: 600px;">
+      <canvas id="canvas" width="800" height="600"></canvas>
+      <canvas id="epicircles" width="800" height="600"></canvas>
+      <canvas id="grid" width="800" height="600"></canvas>
+    </div>
+    
+    <div>
+      <canvas id="drawing" width="800" height="600"></canvas>
+      <div id="drawText">Draw a closed line here ↑</div>
+      <div class="slidecontainer">
+        <span class="slider-text">Number of Circles: <span id="circlesNumber">20</span></span>
+        <input type="range" min="1" max="100" value="20" class="slider" id="myRange">
+      </div>
+
+      <div id="controls">
+      <button id="start" onclick="startDFTfunc()">Start</button>
+      <button id="reset" onclick="reset()">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const epicircles = document.getElementById("epicircles");
+    const ctx = canvas.getContext("2d");
+    const epi_ctx = epicircles.getContext("2d");
+    const grid = document.getElementById("grid");
+    const grid_ctx = grid.getContext("2d");
+    const step = 0.02;
+    const pixel = 5;
+    let speeds = [];
+    let radiuses = [];
+    let cur_angles = [];
+    let combined;
+    let circlesNumber=20;
+    let X = [];
+    let slider = document.getElementById("myRange");
+    slider.innerHTML.value = 20;
+    let displayCirclesNum = document.getElementById("circlesNumber");
+    let startButton = document.getElementById("start");
+    let startDFT = false;
+
+    
+
+    slider.oninput = function() {
+      circlesNumber = this.value;
+      displayCirclesNum.innerHTML = circlesNumber;
+    }
+
+    const grad = grid_ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, "#08080a");
+    grad.addColorStop(1, "#151530");
+    grid_ctx.fillStyle = grad;
+    grid_ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    function startDFTfunc(){
+      if(points.length > 0 && !startDFT){
+        startDFT = true;
+        dft();
+      }
+    }
+
+    function reset(){
+      epi_ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawingCtx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      intermediate = [];
+      radiuses = [];
+      speeds = [];
+      cur_angles = [];
+      points = [];
+      X = []
+      startDFT = false;
+    }
+
+    function drawGrid() {
+      grid_ctx.strokeStyle = "rgba(255,255,255,0.05)";
+      for (let x = 0; x < canvas.width; x += 40) {
+        grid_ctx.beginPath();
+        grid_ctx.moveTo(x, 0);
+        grid_ctx.lineTo(x, canvas.height);
+        grid_ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 40) {
+        grid_ctx.beginPath();
+        grid_ctx.moveTo(0, y);
+        grid_ctx.lineTo(canvas.width, y);
+        grid_ctx.stroke();
+      }
+    }
+    drawGrid();
+
+    function drawCircle(x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, pixel, pixel);
+    }
+
+    function animate() {
+      epi_ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+      epi_ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+      epi_ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      let x = 400;
+      let y = 300;
+      for (let i = 0; i < radiuses.length; i++) {
+        epi_ctx.beginPath();
+        epi_ctx.strokeStyle = "rgba(0,255,255,0.3)";
+        epi_ctx.shadowBlur = 6;
+        epi_ctx.shadowColor = "#00ffff";
+        epi_ctx.lineWidth = 1.2;
+        epi_ctx.arc(x, y, radiuses[i], 0, 2 * Math.PI);
+        epi_ctx.stroke();
+        epi_ctx.shadowBlur = 0;
+
+        
+        epi_ctx.fillStyle = "rgba(255,255,255,0.8)";
+        epi_ctx.beginPath();
+        epi_ctx.arc(x, y, 2, 0, 2 * Math.PI);
+        epi_ctx.fill();
+
+        x += radiuses[i] * Math.cos(cur_angles[i]);
+        y += radiuses[i] * Math.sin(cur_angles[i]);
+        epi_ctx.fillStyle = "#00ffff";
+      
+        cur_angles[i] += step * speeds[i];
+      }
+      drawCircle(x, y, "#ffcc00");
+      requestAnimationFrame(animate);
+    }
+
+    let points = [];
+    let pos = { x: 0, y: 0 };
+    let drawing = false;
+    const drawingCanvas = document.getElementById("drawing");
+    const drawingCtx = drawingCanvas.getContext("2d");
+
+    drawingCtx.strokeStyle = "#ff00ff";
+    drawingCtx.lineWidth = 8;
+    drawingCtx.lineJoin = "round";
+    drawingCtx.lineCap = "round";
+
+    document.addEventListener("mousedown", startDrawing);
+    document.addEventListener("mouseup", stopDrawing);
+    document.addEventListener("mousemove", draw);
+
+    const rect = drawingCanvas.getBoundingClientRect();
+
+    function getPosition(e) {
+      pos.x = e.clientX - rect.left;
+      pos.y = e.clientY - rect.top;
+      points.push({ x: pos.x, y: pos.y });
+    }
+
+    function startDrawing(e) {
+      
+      if(rect.left<=e.clientX && rect.top<=e.clientY && e.clientX<=rect.right && e.clientY<=rect.bottom){
+        drawing = true;
+        getPosition(e);
+      }
+    }
+
+    function stopDrawing() {
+      if(!drawing) return;
+      drawing = false;
+      if (X.length == 0){
+        slider.max = points.length;
+      } 
+    }
+
+    function draw(e) {
+      if (!drawing) return;
+      if(rect.left<=e.clientX<=rect.right && rect.top<=e.clientY<=rect.bottom){
+        drawingCtx.beginPath();
+        drawingCtx.moveTo(pos.x, pos.y);
+        getPosition(e);
+        drawingCtx.lineTo(pos.x, pos.y);
+        drawingCtx.stroke();
+      }
+    }
+
+ 
+   function dft() {
+    let N = points.length;
+    if (N === 0) return;
+
+    let cx = 0, cy = 0;
+    for (let p of points) { 
+      cx += p.x; 
+      cy += p.y; 
+    }
+    cx /= N;
+    cy /= N;
+
+  let centered = points.map(p => ({
+    x: p.x - cx,
+    y: p.y - cy
+  }));
+
+  let maxR = 0;
+  for (let p of centered) {
+    const r = Math.sqrt(p.x*p.x + p.y*p.y);
+    if (r > maxR) 
+      maxR = r;
+  }
+  const scale = 250 / maxR;
+  centered = centered.map(p => ({
+    x: p.x * scale,
+    y: p.y * scale
+  }));
+
+
+  const Nnew = centered.length;
+  const intermediate = [];
+  for(let i=0; i<circlesNumber; i++){
+    intermediate.push(centered[Math.floor(Nnew*i/circlesNumber)]);
+  }
+
+  X.length = 0;
+  for (let k = 0; k < circlesNumber; k++) 
+    X.push({ x: 0, y: 0 });
+  //DFT
+  const Knew = intermediate.length;
+  for (let k = 0; k < circlesNumber; k++) {
+    for (let i = 0; i < circlesNumber; i++) {
+      const r = Math.sqrt(intermediate[i].x**2 + intermediate[i].y**2);
+      const theta = Math.atan2(intermediate[i].y, intermediate[i].x);
+      const phi = (2 * Math.PI * (k - Math.ceil(circlesNumber/2) + 1) * i) / circlesNumber;
+      X[k].x += r * Math.cos(theta - phi);
+      X[k].y += r * Math.sin(theta - phi);
+    }
+    X[k].x /= Knew;
+    X[k].y /= Knew;
+  }
+
+  radiuses = [];
+  cur_angles = [];
+  speeds = [];
+  //Continious IDFT
+  for (let k = 0; k < circlesNumber; k++) {
+    radiuses.push(Math.sqrt(X[k].x ** 2 + X[k].y ** 2));
+    cur_angles.push(Math.atan2(X[k].y, X[k].x));
+    speeds.push((2 * Math.PI * (k - Math.ceil(circlesNumber / 2) + 1)) / circlesNumber);
+  }
+
+  combined = speeds.map((f, i) => ({
+    speeds: f,
+    radius: radiuses[i],
+    angle: cur_angles[i],
+  }));
+  combined.sort((a, b) => Math.abs(a.speeds) - Math.abs(b.speeds));
+
+  speeds = combined.map((o) => o.speeds);
+  radiuses = combined.map((o) => o.radius);
+  cur_angles = combined.map((o) => o.angle);
+
+  animate();
+}
+
+  </script>
+</html>
